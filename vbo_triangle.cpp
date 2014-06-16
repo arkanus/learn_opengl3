@@ -5,45 +5,10 @@
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 #include <iostream>
-
-#define CHECK_GL_STATUS(T,O,S) { \
-  GLint status; \
-  glGet##T##iv(O, S, &status); \
-  if (GL_FALSE == status) { \
-    GLint logLength; \
-    glGet##T##iv(O, GL_INFO_LOG_LENGTH, &logLength); \
-    char *infoLog = (char*)malloc(logLength * sizeof(char)); \
-    glGet##T##InfoLog(O, logLength, NULL, infoLog); \
-    fprintf(stderr, "%d: %d, %s\n", __LINE__, S, infoLog); \
-    free(infoLog); \
-  } \
-}
-
-#define VERTEX_SHADER " \
-  #version 130\n \
-  in vec4 position; \
-  in vec4 color; \
-  smooth out vec4 vColor; \
-  void main() { \
-  gl_Position = position; \
-    vColor = color; \
-  }"
-
-#define FRAGMENT_SHADER " \
-  #version 130\n \
-  smooth in vec4 vColor; \
-  void main() { \
-    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); \
-  }"
-
-GLuint CreateShader(GLenum shaderType, const char* shaderSource)
-{
-  GLuint shader = glCreateShader(shaderType);
-  glShaderSource(shader, 1, (const GLchar **)&shaderSource, NULL);
-  glCompileShader(shader);
-  CHECK_GL_STATUS(Shader, shader, GL_COMPILE_STATUS);
-  return shader;
-}
+#include <fstream>
+#include <string>
+#include <cerrno>
+#include <shader.hpp>
 
 class App
 {
@@ -79,11 +44,12 @@ public:
 
 	void create_shader_program()
 	{
-		GLuint vertex = CreateShader(GL_VERTEX_SHADER, VERTEX_SHADER);
-		GLuint fragment = CreateShader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
+		Shader<GL_VERTEX_SHADER> vertex("vertex.glsl");
+		Shader<GL_FRAGMENT_SHADER> fragment("fragment.glsl");
+
 		shader_program = glCreateProgram();
-		glAttachShader(shader_program, vertex);
-		glAttachShader(shader_program, fragment);
+		glAttachShader(shader_program, vertex.handle());
+		glAttachShader(shader_program, fragment.handle());
 		glLinkProgram(shader_program);
 		CHECK_GL_STATUS(Program, shader_program, GL_LINK_STATUS);
 	}
@@ -127,9 +93,9 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(0.f, 0.f, -1.f);
-		glRotatef(clock.GetElapsedTime() * 50, 1.f, 0.f, 0.f);
-		glRotatef(clock.GetElapsedTime() * 30, 0.f, 1.f, 0.f);
-		glRotatef(clock.GetElapsedTime() * 90, 0.f, 0.f, 1.f);
+		// glRotatef(clock.GetElapsedTime() * 50, 1.f, 0.f, 0.f);
+		// glRotatef(clock.GetElapsedTime() * 30, 0.f, 1.f, 0.f);
+		// glRotatef(clock.GetElapsedTime() * 90, 0.f, 0.f, 1.f);
 		glColor3f(1.f, 1.f, 1.f);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);

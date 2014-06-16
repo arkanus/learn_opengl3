@@ -1,5 +1,6 @@
 GCC=g++
 LDFLAGS=-lsfml-window -lsfml-system -lGL -lGLU -lGLEW
+CFLAGS=-I.
 TRIANGLE_DEPS=vbo_triangle.o
 CUBE_DEPS=cube.o
 ALL=triangle cube
