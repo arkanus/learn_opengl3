@@ -17,7 +17,8 @@ protected:
 	sf::Clock clock;
 	GLuint vertex_array;
 	GLuint vertex_buffer;
-	GLuint shader_program;
+
+	Program* _program;
 
 public:
 	App(const int width, const int height, const char* title)
@@ -42,18 +43,6 @@ public:
 		gluPerspective(90.f, 1.f, 1.f, 500.f);
 	}
 
-	void create_shader_program()
-	{
-		Shader<GL_VERTEX_SHADER> vertex("vertex.glsl");
-		Shader<GL_FRAGMENT_SHADER> fragment("fragment.glsl");
-
-		shader_program = glCreateProgram();
-		glAttachShader(shader_program, vertex.handle());
-		glAttachShader(shader_program, fragment.handle());
-		glLinkProgram(shader_program);
-		CHECK_GL_STATUS(Program, shader_program, GL_LINK_STATUS);
-	}
-
 	bool init_glew()
 	{
 		if (glewInit() != GLEW_OK) {
@@ -73,6 +62,8 @@ public:
 
 	void init_scene()
 	{
+		// Performance? Forward compat?
+		// http://stackoverflow.com/questions/5970087/understanding-vertex-array-objects-glgenvertexarrays
 		glGenVertexArrays(1, &vertex_array);
 		glBindVertexArray(vertex_array);
 		static const GLfloat vertex_data[] = {
@@ -85,7 +76,7 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),
 		             vertex_data, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		create_shader_program();
+		_program = new Program("vertex.glsl", "fragment.glsl");
 	}
 
 	void draw()
@@ -107,8 +98,8 @@ public:
 			0,
 			(void*)0
 		);
-		glUseProgram(shader_program);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glUseProgram(_program->handle());
+		glDrawArrays(GL_LINE_LOOP, 0, 3);
 		glDisableVertexAttribArray(0);
 	}
 

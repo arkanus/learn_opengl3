@@ -26,13 +26,32 @@ protected:
 public:
 	Shader(const char* filename);
 	Shader(std::string code);
-	GLuint handle() {return _handle;}
+	GLuint handle() const {return _handle;}
 };
+
+typedef Shader<GL_VERTEX_SHADER> VertexShader;
+typedef Shader<GL_FRAGMENT_SHADER> FragmentShader;
+
 
 class Program
 {
+protected:
 	GLuint _handle;
+
+	GLuint link(GLuint vertex, GLuint fragment);
+
+public:
+	Program(const VertexShader& vs, const FragmentShader& fs);
+	Program(const char* vs_code, const char* fs_code);
+	GLuint handle() const {return _handle;}
 };
+
+
+/**
+ * Implementations
+ **/
+
+/** Shader **/
 
 std::string read_file(const char* filename)
 {
@@ -74,4 +93,30 @@ Shader<type>::Shader(std::string code)
 {
 	std::cout << "loading from code";
 	_handle = create(code.c_str());
+}
+
+/** Program **/
+GLuint Program::link(const GLuint vertex, const GLuint fragment)
+{
+	_handle = glCreateProgram();
+	if (vertex != 0) {
+		glAttachShader(_handle, vertex);
+	}
+	if (fragment != 0) {
+		glAttachShader(_handle, fragment);
+	}
+	glLinkProgram(_handle);
+	CHECK_GL_STATUS(Program, _handle, GL_LINK_STATUS);
+}
+
+Program::Program(const VertexShader& vs, const FragmentShader& fs)
+{
+	this->link(vs.handle(), fs.handle());
+}
+
+Program::Program(const char* vs_file, const char* fs_file)
+{
+	VertexShader vs(vs_file);
+	FragmentShader fs(fs_file);
+	this->link(vs.handle(), fs.handle());
 }
