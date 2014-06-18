@@ -8,7 +8,8 @@
 #include <fstream>
 #include <string>
 #include <cerrno>
-#include <shader.hpp>
+#include "shader.hpp"
+#include "VertexBuffer.hpp"
 
 class App
 {
@@ -19,6 +20,7 @@ protected:
 	GLuint vertex_buffer;
 
 	Program* _program;
+	VertexBuffer* _vbo;
 
 public:
 	App(const int width, const int height, const char* title)
@@ -62,21 +64,15 @@ public:
 
 	void init_scene()
 	{
-		// Performance? Forward compat?
-		// http://stackoverflow.com/questions/5970087/understanding-vertex-array-objects-glgenvertexarrays
-		glGenVertexArrays(1, &vertex_array);
-		glBindVertexArray(vertex_array);
 		static const GLfloat vertex_data[] = {
 			-1.f, -1.f, 0.f,
-			 1.f, -1.f, 0.f,
-			 0.f,  1.f, 0.f
+			1.f, -1.f, 0.f,
+			0.f,  1.f, 0.f
 		};
-		glGenBuffers(1, &vertex_buffer);
-		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data),
-		             vertex_data, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		std::cout << "vbo data size: " << sizeof(vertex_data) << std::endl;
+		_vbo = new VertexBuffer(vertex_data, sizeof(vertex_data));
 		_program = new Program("vertex.glsl", "fragment.glsl");
+
 	}
 
 	void draw()
@@ -88,19 +84,8 @@ public:
 		// glRotatef(clock.GetElapsedTime() * 30, 0.f, 1.f, 0.f);
 		// glRotatef(clock.GetElapsedTime() * 90, 0.f, 0.f, 1.f);
 		glColor3f(1.f, 1.f, 1.f);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-		glVertexAttribPointer(
-			0,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
-		glUseProgram(_program->handle());
-		glDrawArrays(GL_LINE_LOOP, 0, 3);
-		glDisableVertexAttribArray(0);
+		_program->use();
+		_vbo->draw();
 	}
 
 	int handle_events()

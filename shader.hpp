@@ -44,6 +44,7 @@ public:
 	Program(const VertexShader& vs, const FragmentShader& fs);
 	Program(const char* vs_code, const char* fs_code);
 	GLuint handle() const {return _handle;}
+	void use() {glUseProgram(_handle);}
 };
 
 
